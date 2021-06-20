@@ -1,5 +1,7 @@
-const password = "puhpah";
-const username = "puhelinluottelo";
+const fs = require("fs");
+const secrets = JSON.parse(fs.readFileSync("secrets.json"));
+const password = secrets.dbpassword;
+const username = secrets.dbuser;
 const url = `mongodb+srv:${username}:${password}//cluster0.ojph5.mongodb.net/myFirstDatabase`;
 
 const mongoose = require("mongoose");
@@ -12,17 +14,17 @@ mongoose.connect(url, {
 });
 
 const personSchema = new mongoose.Schema({
-  content: String,
-  date: Date,
-  important: Boolean
+  name: String,
+  number: String,
+  id: Number
 });
 
 const Person = mongoose.model("Person", personSchema);
 
 const person = new Person({
-  content: "HTML is Easy",
-  date: new Date(),
-  important: true
+  name: "Teppo Tulppu",
+  number: "123 1212 123",
+  id: 1
 });
 
 person.save().then((response) => {
