@@ -1,5 +1,5 @@
 {
-  "name": "notes-backend",
+  "name": "puhluettelo-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "lodash": "4.17.21"
+    "lodash": "4.17.21",
+    "morgan": "1.10.0",
+    "mongoose": "5.12.14"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"

@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 const server = express();
 //const path = require("path");
 //const db = path.join(__dirname, "db.json");
@@ -14,13 +15,30 @@ server.use(express.json());
 //server.use(router);
 
 server.get("/", (req, res) => {
-  res.send("<h1>Hello World!</h1>");
+  res.send("<h1>hello!</h1>");
 });
 
 server.get("/moi", (req, res) => {
-  res.send("<h1>Hello World!</h1>");
+  res.send("<h1>moi</h1>");
+});
+server.get("/persons", (req, res) => {
+  res.send.json(db);
+});
+server.delete("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  db = db.filter((person) => person.id !== id);
+  res.status(204).end();
 });
 
+server.get("/api/persons/:id", (req, res) => {
+  const id = req.params.id;
+  const person = db.find((person) => person.id === id);
+  if (person) {
+    res.json(person);
+  } else {
+    res.status(404).end();
+  }
+});
 server.get("/info", (req, res) => {
   var today = new Date();
   var date =
@@ -43,7 +61,9 @@ server.post("/api/persons", (req, res) => {
     req.body.forEach((element) => {
       if (
         typeof db.numbers.number.find((num) => num === element.number) ===
-        undefined
+          undefined &&
+        typeof db.numbers.name.find((name) => name === element.name) ===
+          undefined
       ) {
         var toAdd =
           `{
@@ -64,7 +84,9 @@ server.post("/api/persons", (req, res) => {
   } else {
     if (
       typeof db.numbers.number.find((num) => num === req.body.number) ===
-      undefined
+        undefined &&
+      typeof db.numbers.name.find((name) => name === req.body.name) ===
+        undefined
     ) {
       var toAdd =
         `{
@@ -83,7 +105,8 @@ server.post("/api/persons", (req, res) => {
     }
   }
   if (addedCounter === 0) {
-    res.sendStatus(400);
+    res.status(400);
+    res.send("name and number need to be unique");
   }
 
   res.body = "added: " + addedCounter + " new numbers";
@@ -117,9 +140,15 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
+morgan.token("body", (req, res) => JSON.stringify(req.body));
+server.use(
+  morgan(
+    ":method :url :status :response-time ms - :res[content-length] :body - :req[content-length]"
+  )
+);
 const PORT = 3001;
 
-server.use(requestLogger);
+//server.use(requestLogger);
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
