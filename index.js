@@ -1,13 +1,15 @@
-const express = require("express");
-const morgan = require("morgan");
-const server = express();
+const express = require('express')
+const server = express()
+const morgan = require('morgan')
+const cors = require('cors')
+const _ = require("lodash");
+const Person = require('./models/persons')
 //const path = require("path");
 //const db = path.join(__dirname, "db.json");
-const fs = require("fs");
-let rawdata = fs.readFileSync("db.json");
-let db = JSON.parse(rawdata);
+//const fs = require("fs");
+//let rawdata = fs.readFileSync("db.json");
+//let db = JSON.parse(rawdata);
 
-const _ = require("lodash");
 //const router = server.router(path.join(__dirname, "db.json"));
 //const middlewares = server.defaults();
 //server.use(middlewares);
@@ -21,25 +23,14 @@ server.get("/", (req, res) => {
 server.get("/moi", (req, res) => {
   res.send("<h1>moi</h1>");
 });
-server.get("/persons", (req, res) => {
-  res.send.json(db);
-});
-server.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  db = db.filter((person) => person.id !== id);
-  res.status(204).end();
-});
+app.use(
+  morgan(
+    ':method :url :status :res[content-length] - :response-time ms :person',
+  ),
+)
 
-server.get("/api/persons/:id", (req, res) => {
-  const id = req.params.id;
-  const person = db.find((person) => person.id === id);
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
-});
-server.get("/info", (req, res) => {
+app.get('/info', (req, res) => {
+
   var today = new Date();
   var date =
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -50,87 +41,72 @@ server.get("/info", (req, res) => {
   var firstLine =
     "<div>phonebook contains: " + db.numbers.length + " numbers</div>";
   res.send(firstLine + dateTime);
-});
-
-server.post("/api/persons", (req, res) => {
-  //const db = router.db; // Assign the lowdb instance
-  var addedCounter = 0;
-
-  //if number not found already add
-  if (Array.isArray(req.body)) {
-    req.body.forEach((element) => {
-      if (
-        typeof db.numbers.number.find((num) => num === element.number) ===
-          undefined &&
-        typeof db.numbers.name.find((name) => name === element.name) ===
-          undefined
-      ) {
-        var toAdd =
-          `{
-              "id" : ` +
-          generateID() +
-          ` ,
-              "name" : ` +
-          element.name +
-          ` ,
-              "number" : ` +
-          element.number +
-          ` ,
-              }`;
-        insert(db, "numbers", toAdd); // Add a post
-        addedCounter++;
-      }
+  var count = 0
+  Person.find({})
+    .then((persons) => {
+       count = persons.length
     });
-  } else {
-    if (
-      typeof db.numbers.number.find((num) => num === req.body.number) ===
-        undefined &&
-      typeof db.numbers.name.find((name) => name === req.body.name) ===
-        undefined
-    ) {
-      var toAdd =
-        `{
-          "id" : ` +
-        generateID() +
-        ` ,
-          "name" : ` +
-        req.body.name +
-        ` ,
-          "number" : ` +
-        req.body.number +
-        ` ,
-          }`;
-      insert(db, "numbers", toAdd); // Add a post
-      addedCounter++;
-    }
-  }
-  if (addedCounter === 0) {
-    res.status(400);
-    res.send("name and number need to be unique");
-  }
-
-  res.body = "added: " + addedCounter + " new numbers";
-  res.sendStatus(200);
-
-  function generateID() {
-    //const db = router.db;
-    const maxId =
-      db.numbers.length > 0 ? Math.max(...db.numbers.map((n) => n.id)) : 0;
-    return maxId + 1;
-  }
-  /**
-   * Checks whether the id of the new data already exists in the DB
-   * @param {*} db - DB object
-   * @param {String} collection - Name of the array / collection in the DB / JSON file
-   * @param {*} data - New record
-   */
-  function insert(db, collection, data) {
-    const table = db.get(collection);
-    if (_.isEmpty(table.find(data).value())) {
-      table.push(data).write();
-    }
-  }
+  res.send(firstLine + dateTime);
 });
+
+app.get('/api/persons', (req, res) => {
+  Person.find({}).then((persons) => {
+    res.json(persons.map((person) => person.toJSON()))
+  })
+});
+
+app.get('/api/persons/:id', (req, res, next) => {
+  const { id } = req.params
+
+  Person.findById(id).then((person) => {
+      if (person) {
+        res.json(person.toJSON())
+      } else {
+        res.status(404).end()
+      }
+    }).catch((error) => next(error))
+});
+
+app.delete('/api/persons/:id', (req, res, next) => {
+  const { id } = req.params
+
+  Person.findByIdAndRemove(id)
+    .then(() => {
+      res.status(204).end()
+    })
+    .catch((error) => next(error))
+});
+
+app.post('/api/persons', (req, res, next) => {
+  const { body } = req
+
+  // Error handling
+  if (req.body.name.length < 8 || reg.body.number.length < 3) {
+    return res.status(400).json({
+      error: 'name is required',
+    })
+  }
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  })
+
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson.toJSON())
+    })
+    .catch((error) => next(error))
+});
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const { body } = req
+  const { id } = req.params
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -140,15 +116,27 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
-morgan.token("body", (req, res) => JSON.stringify(req.body));
-server.use(
-  morgan(
-    ":method :url :status :response-time ms - :res[content-length] :body - :req[content-length]"
-  )
-);
+// Error handling middleware
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError' && error.message.includes('ObjectId')) {
+    return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+
+server.use(errorHandler)
+
+
+
+
 const PORT = 3001;
 
 //server.use(requestLogger);
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})
