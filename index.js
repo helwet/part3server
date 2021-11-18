@@ -1,6 +1,6 @@
 const express = require("express");
-const server = express();
 const morgan = require("morgan");
+const server = express();
 const cors = require("cors");
 const _ = require("lodash");
 //const path = require("path");
@@ -12,11 +12,22 @@ const _ = require("lodash");
 //const router = server.router(path.join(__dirname, "db.json"));
 //const middlewares = server.defaults();
 //server.use(middlewares);
-
-server.use(cors);
-server.use(express.json());
 const Person = require("./models/persons");
-//server.use(router);
+// Configure morgan to log body of POST request
+morgan.token("person", (req) => {
+  if (req.method === "POST") return JSON.stringify(req.body);
+  return null;
+});
+
+// json-parser
+server.use(express.json());
+
+server.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :person"
+  )
+);
+server.use(express.static("build"));
 
 server.get("/", (req, res) => {
   res.send("<h1>hello!</h1>");
@@ -27,16 +38,17 @@ server.get("/moi", (req, res) => {
 });
 
 server.post("/api/persons", (req, res, next) => {
+  console.log("alotetaan");
   if (req.body.name.length < 9 || req.body.number.length < 4) {
     return res
       .status(400)
-      .message("name must be longer than 8 and number longer then 3");
+      .send("name must be longer than 8 and number longer then 3");
   }
   const person = new Person({
     name: req.body.name,
     number: req.body.number
   });
-
+  console.log("alotetaan2");
   person
     .save()
     .then((savedPerson) => {
@@ -97,7 +109,6 @@ server.get("/info", (req, res) => {
   var dateTime = "<div> server time is: " + date + " " + time + "</div>";
   //const db = router.db;
 
-  res.send(firstLine + dateTime);
   var count = 0;
   Person.find({}).then((persons) => {
     count = persons.length;
@@ -113,12 +124,13 @@ const requestLogger = (request, response, next) => {
   console.log("---");
   next();
 };
+server.use(requestLogger);
 
 const errorHandler = (error, req, res, next) => {
-  console.log(error.message);
+  console.log(error);
 
   if (error.name === "CastError") {
-    return res.status(400).message("bad id");
+    return res.status(400).send("bad id");
   }
   next(error);
 };

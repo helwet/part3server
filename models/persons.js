@@ -2,19 +2,16 @@ const fs = require("fs");
 const secrets = JSON.parse(fs.readFileSync("secrets.json"));
 const password = secrets.dbpassword;
 const username = secrets.dbuser;
-const url = `mongodb+srv://${username}:${password}@cluster0.ojph5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-
+const url = `mongodb+srv://puhelinluettelo:${password}@cluster0.ojph5.mongodb.net/puh?retryWrites=true&w=majority`;
 const mongoose = require("mongoose");
-
-mongoose.connect(url, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const personSchema = new mongoose.Schema({
   name: String,
   number: String
 });
+const uniqueValidator = require("mongoose-unique-validator");
+personSchema.plugin(uniqueValidator);
 
 personSchema.set("toJSON", {
   transform: (document, returnedObject) => {
