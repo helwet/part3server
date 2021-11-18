@@ -3,7 +3,6 @@ const server = express();
 const morgan = require("morgan");
 const cors = require("cors");
 const _ = require("lodash");
-const Person = require("./models/persons");
 //const path = require("path");
 //const db = path.join(__dirname, "db.json");
 //const fs = require("fs");
@@ -13,8 +12,10 @@ const Person = require("./models/persons");
 //const router = server.router(path.join(__dirname, "db.json"));
 //const middlewares = server.defaults();
 //server.use(middlewares);
-server.use(express.json());
+
 server.use(cors);
+server.use(express.json());
+const Person = require("./models/persons");
 //server.use(router);
 
 server.get("/", (req, res) => {
@@ -26,14 +27,14 @@ server.get("/moi", (req, res) => {
 });
 
 server.post("/api/persons", (req, res, next) => {
-  if (req.body.name.length < 9 || reg.body.number.length < 4) {
+  if (req.body.name.length < 9 || req.body.number.length < 4) {
     return res
       .status(400)
       .message("name must be longer than 8 and number longer then 3");
   }
   const person = new Person({
-    name: body.name,
-    number: body.number
+    name: req.body.name,
+    number: req.body.number
   });
 
   person
@@ -57,13 +58,13 @@ server.put("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/api/persons", (req, res) => {
+server.get("/api/persons", (req, res) => {
   Person.find({}).then((persons) => {
     res.json(persons.map((person) => person.toJSON()));
   });
 });
 
-app.delete("/api/persons/:id", (req, res, next) => {
+server.delete("/api/persons/:id", (req, res, next) => {
   const { id } = req.params;
 
   Person.findByIdAndRemove(id)
@@ -73,7 +74,7 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/api/persons/:id", (req, res, next) => {
+server.get("/api/persons/:id", (req, res, next) => {
   const { id } = req.params;
 
   Person.findById(id)
@@ -87,7 +88,7 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/info", (req, res) => {
+server.get("/info", (req, res) => {
   var today = new Date();
   var date =
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -126,6 +127,6 @@ server.use(errorHandler);
 const PORT = 3001;
 
 //server.use(requestLogger);
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

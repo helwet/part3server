@@ -2,7 +2,7 @@ const fs = require("fs");
 const secrets = JSON.parse(fs.readFileSync("secrets.json"));
 const password = secrets.dbpassword;
 const username = secrets.dbuser;
-const url = `mongodb+srv://${username}:${password}@cluster0.ojph5.mongodb.net/myFirstDatabase`;
+const url = `mongodb+srv://${username}:${password}@cluster0.ojph5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const mongoose = require("mongoose");
 
@@ -15,8 +15,6 @@ const personSchema = new mongoose.Schema({
   name: String,
   number: String
 });
-
-const Person = mongoose.model("Person", personSchema);
 
 personSchema.set("toJSON", {
   transform: (document, returnedObject) => {
