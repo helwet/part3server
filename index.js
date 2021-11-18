@@ -1,9 +1,9 @@
-const express = require('express')
-const server = express()
-const morgan = require('morgan')
-const cors = require('cors')
+const express = require("express");
+const server = express();
+const morgan = require("morgan");
+const cors = require("cors");
 const _ = require("lodash");
-const Person = require('./models/persons')
+const Person = require("./models/persons");
 //const path = require("path");
 //const db = path.join(__dirname, "db.json");
 //const fs = require("fs");
@@ -14,6 +14,7 @@ const Person = require('./models/persons')
 //const middlewares = server.defaults();
 //server.use(middlewares);
 server.use(express.json());
+server.use(cors);
 //server.use(router);
 
 server.get("/", (req, res) => {
@@ -23,14 +24,70 @@ server.get("/", (req, res) => {
 server.get("/moi", (req, res) => {
   res.send("<h1>moi</h1>");
 });
-app.use(
-  morgan(
-    ':method :url :status :res[content-length] - :response-time ms :person',
-  ),
-)
 
-app.get('/info', (req, res) => {
+server.post("/api/persons", (req, res, next) => {
+  if (req.body.name.length < 9 || reg.body.number.length < 4) {
+    return res
+      .status(400)
+      .message("name must be longer than 8 and number longer then 3");
+  }
+  const person = new Person({
+    name: body.name,
+    number: body.number
+  });
 
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson.toJSON());
+    })
+    .catch((error) => next(error));
+});
+
+server.put("/api/persons/:id", (req, res, next) => {
+  const person = {
+    name: req.body.name,
+    number: req.body.number
+  };
+
+  Person.findByIdAndUpdate(req.params, person, { new: true })
+    .then((updatedPerson) => {
+      res.json(updatedPerson.toJSON());
+    })
+    .catch((error) => next(error));
+});
+
+app.get("/api/persons", (req, res) => {
+  Person.find({}).then((persons) => {
+    res.json(persons.map((person) => person.toJSON()));
+  });
+});
+
+app.delete("/api/persons/:id", (req, res, next) => {
+  const { id } = req.params;
+
+  Person.findByIdAndRemove(id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
+});
+
+app.get("/api/persons/:id", (req, res, next) => {
+  const { id } = req.params;
+
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        res.json(person.toJSON());
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
+});
+
+app.get("/info", (req, res) => {
   var today = new Date();
   var date =
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -38,75 +95,15 @@ app.get('/info', (req, res) => {
     today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   var dateTime = "<div> server time is: " + date + " " + time + "</div>";
   //const db = router.db;
-  var firstLine =
-    "<div>phonebook contains: " + db.numbers.length + " numbers</div>";
-  res.send(firstLine + dateTime);
-  var count = 0
-  Person.find({})
-    .then((persons) => {
-       count = persons.length
-    });
-  res.send(firstLine + dateTime);
-});
 
-app.get('/api/persons', (req, res) => {
+  res.send(firstLine + dateTime);
+  var count = 0;
   Person.find({}).then((persons) => {
-    res.json(persons.map((person) => person.toJSON()))
-  })
+    count = persons.length;
+  });
+  var firstLine = "<div>phonebook contains: " + count + " numbers</div>";
+  res.send(firstLine + dateTime);
 });
-
-app.get('/api/persons/:id', (req, res, next) => {
-  const { id } = req.params
-
-  Person.findById(id).then((person) => {
-      if (person) {
-        res.json(person.toJSON())
-      } else {
-        res.status(404).end()
-      }
-    }).catch((error) => next(error))
-});
-
-app.delete('/api/persons/:id', (req, res, next) => {
-  const { id } = req.params
-
-  Person.findByIdAndRemove(id)
-    .then(() => {
-      res.status(204).end()
-    })
-    .catch((error) => next(error))
-});
-
-app.post('/api/persons', (req, res, next) => {
-  const { body } = req
-
-  // Error handling
-  if (req.body.name.length < 8 || reg.body.number.length < 3) {
-    return res.status(400).json({
-      error: 'name is required',
-    })
-  }
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  })
-
-  person
-    .save()
-    .then((savedPerson) => {
-      res.json(savedPerson.toJSON())
-    })
-    .catch((error) => next(error))
-});
-
-app.put('/api/persons/:id', (req, res, next) => {
-  const { body } = req
-  const { id } = req.params
-
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -116,27 +113,19 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
-// Error handling middleware
 const errorHandler = (error, req, res, next) => {
-  console.error(error.message)
+  console.log(error.message);
 
-  if (error.name === 'CastError' && error.message.includes('ObjectId')) {
-    return res.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'ValidationError') {
-    return res.status(400).json({ error: error.message })
+  if (error.name === "CastError") {
+    return res.status(400).message("bad id");
   }
+  next(error);
+};
 
-  next(error)
-}
-
-server.use(errorHandler)
-
-
-
-
+server.use(errorHandler);
 const PORT = 3001;
 
 //server.use(requestLogger);
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
