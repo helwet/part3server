@@ -4,8 +4,6 @@ const server = express();
 const cors = require("cors");
 const _ = require("lodash");
 //const path = require("path");
-//const db = path.join(__dirname, "db.json");
-//const fs = require("fs");
 //let rawdata = fs.readFileSync("db.json");
 //let db = JSON.parse(rawdata);
 
