@@ -136,7 +136,7 @@ const errorHandler = (error, req, res, next) => {
 };
 
 server.use(errorHandler);
-const PORT = 3001;
+const PORT = 3003;
 
 //server.use(requestLogger);
 server.listen(PORT, () => {
