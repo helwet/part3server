@@ -26,17 +26,19 @@ mongoose
   .catch((error) => {
     console.log("error connection to MongoDB:", error.message);
   });
+
+server.use(
+  morgan(
+    ":method :url :status :res[content-length] :res[content-length]- :response-time ms :person"
+  )
+);
 // Configure morgan to log body of POST request
 morgan.token("person", (req) => {
   if (req.method === "POST") return JSON.stringify(req.body);
   return null;
 });
-server.use(cors());
-server.use(
-  morgan(
-    ":method :url :status :res[content-length] - :response-time ms :person"
-  )
-);
+
+server.use(cors({ origin: true }));
 console.log("ok1");
 
 server.use(express.static("build"));

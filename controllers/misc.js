@@ -4,11 +4,11 @@ const Person = require("../models/persons");
 //const baseUrl = "http://fhevm.sse.codesandbox.io";
 
 miscRouter.get("/", (req, res) => {
-  res.send("<h1>hello!</h1>");
+  res.send("hello!");
 });
 
 miscRouter.get("/moi", (req, res) => {
-  res.send("<h1>moi</h1>");
+  res.send("moi");
 });
 
 miscRouter.get("/info", (req, res) => {
@@ -17,14 +17,14 @@ miscRouter.get("/info", (req, res) => {
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
   var time =
     today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  var dateTime = "<div> server time is: " + date + " " + time + "</div>";
+  var dateTime = "server time is: " + date + " " + time + "";
   //const db = router.db;
 
   var count = 0;
   Person.find({}).then((persons) => {
     count = persons.length;
   });
-  var firstLine = "<div>phonebook contains: " + count + " numbers</div>";
+  var firstLine = "\\nphonebook contains: " + count + " numbers";
   res.send(firstLine + dateTime);
 });
 

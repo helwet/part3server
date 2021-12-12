@@ -31,10 +31,13 @@ personsRouter.put("/api/persons/:id", (req, res) => {
   );
 });
 
-personsRouter.get("/api/persons", (req, res) => {
-  Person.find({}).then((persons) => {
-    res.json(persons.map((person) => person.toJSON()));
+personsRouter.get("/api/persons", async (request, response) => {
+  const blogs = await Person.find({}).populate("user", {
+    username: 1,
+    name: 1
   });
+
+  response.json(blogs.map((blog) => blog.toJSON()));
 });
 
 personsRouter.delete("/api/persons/:id", (req, res) => {
