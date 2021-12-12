@@ -1,16 +1,11 @@
-const fs = require("fs");
-const secrets = JSON.parse(fs.readFileSync("secrets.json"));
-const password = secrets.dbpassword;
-const username = secrets.dbuser;
-const url = `mongodb+srv://puhelinluettelo:${password}@cluster0.ojph5.mongodb.net/puh?retryWrites=true&w=majority`;
 const mongoose = require("mongoose");
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+const uniqueValidator = require("mongoose-unique-validator");
 
 const personSchema = new mongoose.Schema({
   name: String,
   number: String
 });
-const uniqueValidator = require("mongoose-unique-validator");
+
 personSchema.plugin(uniqueValidator);
 
 personSchema.set("toJSON", {
