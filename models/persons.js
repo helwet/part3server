@@ -1,8 +1,26 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
+const url = `mongodb+srv://puhelinluettelo:${process.env.password}@cluster0.ojph5.mongodb.net/puh?retryWrites=true&w=majority`;
+
+mongoose
+  .connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true
+  })
+  .then(() => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connection to MongoDB:", error.message);
+  });
 const personSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    unique: true
+  },
   number: String
 });
 

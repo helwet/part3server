@@ -11,7 +11,7 @@ miscRouter.get("/moi", (req, res) => {
   res.send("moi");
 });
 
-miscRouter.get("/info", (req, res) => {
+miscRouter.get("/info", async (req, res) => {
   var today = new Date();
   var date =
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
@@ -19,12 +19,10 @@ miscRouter.get("/info", (req, res) => {
     today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   var dateTime = "server time is: " + date + " " + time + "";
   //const db = router.db;
-
-  var count = 0;
-  Person.find({}).then((persons) => {
-    count = persons.length;
-  });
-  var firstLine = "\\nphonebook contains: " + count + " numbers";
+  console.log("getting info");
+  const blogs = await Person.find({});
+  console.log(blogs);
+  var firstLine = "phonebook contains: " + blogs.length + " numbers";
   res.send(firstLine + dateTime);
 });
 
